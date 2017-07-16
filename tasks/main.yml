@@ -1,0 +1,81 @@
+---
+# tasks file for kernel-settings
+
+- name: "Require Correct Linux Distribution"
+  assert:
+    that: ansible_distribution | lower in ['redhat', 'centos']
+    msg:  "This Linux distrution is not supported by the role."
+  tags: kernel-settings
+
+- name: "Set Kernel Parameters under /proc"
+  sysctl:
+    name:   "{{ item.name }}"
+    value:  "{{ item.value }}"
+    state:  "{{ item.state | default(omit) }}"
+    reload: "{{ item.reload | default(true) }}"
+    sysctl_file: "{{ kernel_sysctl_file }}"
+    ignoreerrors: yes
+  with_items:
+   - "{{ kernel_sysctl_config }}"
+  tags: kernel-settings
+
+- name: "Set Kernel Sub-Parameters under /proc"
+  sysctl:
+    name:   "{{ item.1.name }}"
+    value:  "{{ item.1.value }}"
+    state:  "{{ item.1.state | default(omit) }}"
+    reload: "{{ item.1.reload | default(true) }}"
+    sysctl_file: "{{ kernel_sysctl_d_path }}/{{ item.0.name }}.conf"
+    ignoreerrors: yes
+  with_subelements:
+   - "{{ kernel_sysctl_d_settings }}"
+   - params
+  tags: kernel-settings
+
+- name: "Set Kernel Parameters under /sys"
+  command: echo "{{ item.value }}" > "{{ item.name }}"
+  with_items:
+   - "{{ kernel_sysfs_config }}"
+  tags: kernel-settings
+
+- name: "Permanent Kernel Parameters under /sys"
+  lineinfile:
+    dest:  /etc/rc.d/rc.local
+    line:  'echo "{{ item.value }}" > "{{ item.name }}"'
+    state: "{{ item.state | default(omit) }}"
+  with_items:
+   - "{{ kernel_sysfs_config }}"
+  tags: kernel-settings
+
+- name: "Permanent Settings on GRUB (E)"
+  lineinfile:
+    dest:    "{{ kernel_grub2_file }}"
+    regexp:  '^\s*(GRUB_CMDLINE_LINUX="((?!{{ item.name }}).)*)(\S+)(.*")\s*$'
+    line:    '\1 {{ item.name }}{% if item.value is defined %}={{ item.value }}{% endif %} \4'
+    state:    present
+    backrefs: yes
+  when: item.enabled | default(true) | bool and
+        item.boot | default(false) | bool
+  register: grub_modified_E
+  with_items:
+   - "{{ kernel_grub_config }}"
+  tags: kernel-settings
+
+- name: "Permanent Settings on GRUB (D)"
+  lineinfile:
+    dest:    "{{ kernel_grub2_file }}"
+    regexp:  '^\s*(GRUB_CMDLINE_LINUX="((?!{{ item.name }}{% if item.value is defined %}={{ item.value }}{% endif %}).)*)(\S+)(.*")\s*$'
+    state:    absent
+    backrefs: yes
+  when: not item.enabled | default(true) | bool and
+        item.boot | default(false) | bool
+  register: grub_modified_D
+  with_items:
+   - "{{ kernel_grub_config }}"
+  tags: kernel-settings
+
+- name: "Reconfigure GRUB"
+  shell: /usr/sbin/grub2-mkconfig -o "{{ kernel_grub2_file }}"
+  when: grub_modified_E.changed or
+        grub_modified_D.changed
+  tags: kernel-settings

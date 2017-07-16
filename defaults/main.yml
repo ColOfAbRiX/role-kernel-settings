@@ -1,0 +1,23 @@
+---
+# defaults file for kernel-settings
+
+# GRUB config file for boot settings
+kernel_grub2_file: /etc/default/grub
+
+# Main kernel settings file
+kernel_sysctl_file: /etc/sysctl.conf
+
+# Kernel settings directory
+kernel_sysctl_d_path: /etc/sysctl.d
+
+# Settings in the main file
+kernel_sysctl_config: []
+
+# Settings in the directory
+kernel_sysctl_d_settings: []
+
+# Settings specific for the /sys pseudo file system
+kernel_sysfs_config: []
+
+# Settings to be loaded at bood by GRUB
+kernel_grub_config: []
