@@ -1,7 +1,7 @@
-Role Name
+role-kernel-settings
 =========
 
-A brief description of the role goes here.
+Ansible role to manage Linux Kernel Settings
 
 Requirements
 ------------

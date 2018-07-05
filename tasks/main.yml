@@ -7,6 +7,7 @@
     msg:  "This Linux distrution is not supported by the role."
   tags: kernel-settings
 
+
 - name: "Set Kernel Parameters under /proc"
   sysctl:
     name:   "{{ item.name }}"
@@ -32,6 +33,7 @@
    - params
   tags: kernel-settings
 
+
 - name: "Set Kernel Parameters under /sys"
   command: echo "{{ item.value }}" > "{{ item.name }}"
   with_items:
@@ -46,6 +48,7 @@
   with_items:
    - "{{ kernel_sysfs_config }}"
   tags: kernel-settings
+
 
 - name: "Permanent Settings on GRUB (E)"
   lineinfile:

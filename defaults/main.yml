@@ -10,14 +10,28 @@ kernel_sysctl_file: /etc/sysctl.conf
 # Kernel settings directory
 kernel_sysctl_d_path: /etc/sysctl.d
 
-# Settings in the main file
+# Settings in the main file. It maps the arguments of the sysctl Ansible module
 kernel_sysctl_config: []
+# - name:   vm.swappiness
+#   value:  0
+#   state:  present
 
-# Settings in the directory
+# Settings in the /etc/sysctl.d directory. It maps the arguments of the sysctl
+# Ansible module and creates a file for each entry
 kernel_sysctl_d_settings: []
+# - name: swappiness
+#   params:
+#    - name:   vm.swappiness
+#      value:  0
+#      state:  present
 
 # Settings specific for the /sys pseudo file system
 kernel_sysfs_config: []
+# - value: /kernel/mm/ksm/run
+#   name:  1
 
-# Settings to be loaded at bood by GRUB
+# Settings to be loaded at boot by GRUB
 kernel_grub_config: []
+# - name:  quiet
+# - name:  root=
+#   value: /dev/sda3
