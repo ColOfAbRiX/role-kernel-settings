@@ -1,0 +1,24 @@
+---
+
+- name: "Kernel Parameters under /proc"
+  sysctl:
+    name:         "{{ item.name }}"
+    value:        "{{ item.value }}"
+    state:        "{{ item.state | default(omit) }}"
+    reload:       "{{ item.reload | default(true) }}"
+    sysctl_file:  "{{ kernel_sysctl_file }}"
+    ignoreerrors: yes
+  with_items:
+   - "{{ kernel_sysctl_config }}"
+
+- name: "Kernel Parameters Files under /proc"
+  sysctl:
+    name:         "{{ item.1.name }}"
+    value:        "{{ item.1.value }}"
+    state:        "{{ item.1.state | default(omit) }}"
+    reload:       "{{ item.1.reload | default(true) }}"
+    sysctl_file:  "{{ kernel_sysctl_d_path }}/{{ item.0.name }}.conf"
+    ignoreerrors: yes
+  with_subelements:
+   - "{{ kernel_sysctl_d_settings }}"
+   - params

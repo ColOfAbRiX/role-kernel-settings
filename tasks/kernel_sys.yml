@@ -1,0 +1,21 @@
+---
+
+- name: "Kernel Parameters under /sys"
+  command: echo "{{ item.value }}" > "{{ item.name }}"
+  with_items:
+   - "{{ kernel_sysfs_config }}"
+
+- name: "Permanent Kernel Parameters under /sys"
+  lineinfile:
+    dest:   "{{ kernel_rc_local }}"
+    line:   'echo "{{ item.value }}" > "{{ item.name }}"'
+    state:  "{{ item.state | default(omit) }}"
+    create: yes
+    owner:  root
+    group:  root
+    mode:   0755
+    seuser: system_u
+    serole: object_r
+    setype: initrc_exec_t
+  with_items:
+   - "{{ kernel_sysfs_config }}"

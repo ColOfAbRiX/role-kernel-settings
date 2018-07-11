@@ -1,0 +1,11 @@
+---
+
+kernel_grub2_file: /etc/default/grub
+
+kernel_grub2_reconfig: /usr/sbin/grub2-mkconfig
+
+kernel_sysctl_file: /etc/sysctl.conf
+
+kernel_sysctl_d_path: /etc/sysctl.d
+
+kernel_rc_local: /etc/rc.d/rc.local

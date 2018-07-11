@@ -1,0 +1,31 @@
+---
+
+- name: "Enabled Settings on GRUB"
+  lineinfile:
+    dest:     "{{ kernel_grub2_file }}"
+    regexp:   '^\s*(GRUB_CMDLINE_LINUX="((?!{{ item.name }}).)*)(\S+)(.*")\s*$'
+    line:     '\1 {{ item.name }}{% if item.value is defined %}={{ item.value }}{% endif %} \4'
+    state:    present
+    backrefs: yes
+  when: item.enabled | default(true) | bool and
+        item.boot | default(false) | bool
+  register: grub_enabled_modified
+  with_items:
+   - "{{ kernel_grub_config }}"
+
+- name: "Disabled Settings on GRUB (D)"
+  lineinfile:
+    dest:     "{{ kernel_grub2_file }}"
+    regexp:   '^\s*(GRUB_CMDLINE_LINUX="((?!{{ item.name }}{% if item.value is defined %}={{ item.value }}{% endif %}).)*)(\S+)(.*")\s*$'
+    state:    absent
+    backrefs: yes
+  when: not item.enabled | default(true) | bool and
+        item.boot | default(false) | bool
+  register: grub_disabled_modified
+  with_items:
+   - "{{ kernel_grub_config }}"
+
+- name: "Reconfigure GRUB"
+  shell: "{{ kernel_grub2_reconfig }} -o {{ kernel_grub2_file }}"
+  when: grub_enabled_modified.changed or
+        grub_disabled_modified.changed
